@@ -48,6 +48,43 @@ codigo: codigo
 }
 
 </script>
+<script src="https://unpkg.com/html5-qrcode"></script>
 
+<script>
+const urlScript = "https://script.google.com/macros/s/AKfycbxoazerTBp9E7k3MMOwbMxiMKK5gEkk_E-x6U_sMtteOMHyPk13z5hB6y0Xr_8EoBbGeA/exec";
+
+function enviarParaSheets(codigo) {
+    fetch(urlScript, {
+        method: "POST",
+        mode: "no-cors",
+        body: new URLSearchParams({ "codigo": codigo })
+    })
+    .then(() => console.log("Código enviado: " + codigo))
+    .catch(err => alert("Erro ao enviar: " + err));
+}
+
+const btnBipar = document.getElementById('btn-bipar');
+const html5QrCode = new Html5Qrcode("reader");
+
+btnBipar.addEventListener('click', () => {
+    btnBipar.innerText = "LENDO...";
+    btnBipar.style.backgroundColor = "#ffc107";
+
+    html5QrCode.start(
+        { facingMode: "environment" },
+        { fps: 10, qrbox: { width: 250, height: 150 } },
+        (codigoLido) => {
+            html5QrCode.stop().then(() => {
+                enviarParaSheets(codigoLido);
+                btnBipar.innerText = "BIPAR";
+                btnBipar.style.backgroundColor = "#28a745";
+                alert("Bipado: " + codigoLido);
+            }).catch(err => console.error(err));
+        },
+        (errorMessage) => {}
+    ).catch(err => alert("Câmera não encontrada: " + err));
+});
+</script>
+    
 </body>
 </html>
