@@ -9,7 +9,6 @@
         body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; text-align: center; padding: 20px; background-color: #f4f4f9; margin: 0; }
         h2 { color: #333; margin-bottom: 20px; }
         
-        /* Botão Principal */
         #btn-bipar { 
             padding: 20px; width: 100%; max-width: 300px; font-size: 22px; font-weight: bold;
             background-color: #28a745; color: white; border: none; border-radius: 12px; 
@@ -17,7 +16,6 @@
         }
         #btn-bipar:active { transform: scale(0.95); }
 
-        /* Container do Scanner - Ajustado para Quadrado */
         #reader { 
             width: 100%; max-width: 350px; margin: 20px auto; 
             border-radius: 15px; overflow: hidden; border: 4px solid #fff;
@@ -30,7 +28,7 @@
             background-color: #28a745; color: white; z-index: 9999;
             flex-direction: column; justify-content: center; align-items: center;
         }
-        #success-overlay h1 { font-size: 80px; margin: 0; }
+        #success-overlay h1 { font-size: 100px; margin: 0; font-weight: bold; }
         #success-overlay p { font-size: 24px; }
     </style>
 </head>
@@ -52,6 +50,25 @@
         const msgCodigo = document.getElementById('msg-codigo');
         const html5QrCode = new Html5Qrcode("reader");
 
+        // Função para gerar o som de "Beep" via software
+        function tocarBeep() {
+            const context = new (window.AudioContext || window.webkitAudioContext)();
+            const oscillator = context.createOscillator();
+            const gain = context.createGain();
+
+            oscillator.type = "sine";
+            oscillator.frequency.setValueAtTime(800, context.currentTime); // Frequência do bipe
+            oscillator.connect(gain);
+            gain.connect(context.destination);
+
+            gain.gain.setValueAtTime(0, context.currentTime);
+            gain.gain.linearRampToValueAtTime(0.5, context.currentTime + 0.01);
+            gain.gain.linearRampToValueAtTime(0, context.currentTime + 0.2);
+
+            oscillator.start();
+            oscillator.stop(context.currentTime + 0.2);
+        }
+
         function enviarParaSheets(codigo) {
             fetch(urlScript, {
                 method: "POST",
@@ -61,13 +78,13 @@
         }
 
         function mostrarSucesso(codigo) {
-            msgCodigo.innerText = "Código: " + codigo;
+            tocarBeep(); // Toca o som de bipe
+            msgCodigo.innerText = "Lido: " + codigo;
             overlay.style.display = "flex";
             
-            // Remove a tela verde após 1.5 segundos
             setTimeout(() => {
                 overlay.style.display = "none";
-            }, 1500);
+            }, 1000); // Tela verde por 1 segundo
         }
 
         btnBipar.addEventListener('click', () => {
@@ -80,12 +97,12 @@
                 { facingMode: "environment" },
                 { 
                     fps: 15, 
-                    qrbox: { width: 250, height: 250 } // AQUI: Ficou um quadrado perfeito 250x250
+                    qrbox: { width: 250, height: 250 } 
                 },
                 (codigoLido) => {
                     html5QrCode.stop().then(() => {
                         enviarParaSheets(codigoLido);
-                        mostrarSucesso(codigoLido); // Chama a tela verde
+                        mostrarSucesso(codigoLido);
                         
                         btnBipar.innerText = "BIPAR";
                         btnBipar.style.backgroundColor = "#28a745";
