@@ -1,90 +1,80 @@
 <!DOCTYPE html>
-<html>
+<html lang="pt-br">
 <head>
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<script src="https://unpkg.com/html5-qrcode"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bipador Logístico</title>
+    <script src="https://unpkg.com/html5-qrcode"></script>
+    <style>
+        body { font-family: Arial, sans-serif; text-align: center; padding: 20px; }
+        #btn-bipar { 
+            padding: 20px; width: 100%; max-width: 300px; font-size: 22px; font-weight: bold;
+            background-color: #28a745; color: white; border: none; border-radius: 12px; cursor: pointer;
+        }
+        #reader { width: 100%; max-width: 400px; margin: 20px auto; border-radius: 8px; overflow: hidden; }
+    </style>
 </head>
+<body>
 
-<body style="font-family:Arial;text-align:center">
+    <h2>Bipador via Celular</h2>
+    
+    <button id="btn-bipar">BIPAR</button>
+    <div id="reader"></div>
 
-<h2>Bipador via celular</h2>
+    <script>
+        // Configurações do seu Google Sheets
+        const urlScript = "https://script.google.com/macros/s/AKfycbxoazerTBp9E7k3MMOwbMxiMKK5gEkk_E-x6U_sMtteOMHyPk13z5hB6y0Xr_8EoBbGeA/exec";
+        
+        const btnBipar = document.getElementById('btn-bipar');
+        const html5QrCode = new Html5Qrcode("reader");
 
-<button onclick="startScanner()" style="font-size:22px;padding:15px">
-Iniciar leitura
-</button>
-<button id="btn-bipar" style="padding: 15px 30px; font-size: 20px; background-color: #28a745; color: white; border: none; borderRadius: 8px;">
-    BIPAR
-</button>
+        // Função para enviar os dados para a planilha
+        function enviarParaSheets(codigo) {
+            fetch(urlScript, {
+                method: "POST",
+                mode: "no-cors",
+                body: new URLSearchParams({ "codigo": codigo })
+            })
+            .then(() => console.log("Enviado: " + codigo))
+            .catch(err => alert("Erro no envio: " + err));
+        }
 
-<div id="reader" style="width: 300px;"></div>
-<br><br>
+        // Lógica de acionamento manual
+        btnBipar.addEventListener('click', () => {
+            // Evita abrir a câmera duas vezes se já estiver lendo
+            if (btnBipar.innerText === "LENDO...") return;
 
-<div id="reader" style="width:320px;margin:auto"></div>
+            btnBipar.innerText = "LENDO...";
+            btnBipar.style.backgroundColor = "#ffc107";
 
-<script>
+            html5QrCode.start(
+                { facingMode: "environment" }, // Força câmera traseira
+                { fps: 10, qrbox: { width: 250, height: 150 } },
+                (codigoLido) => {
+                    // SUCESSO: Leu o código
+                    
+                    // PARA a câmera IMEDIATAMENTE após o primeiro bipe
+                    html5QrCode.stop().then(() => {
+                        // Só então envia para o Sheets
+                        enviarParaSheets(codigoLido);
 
-function startScanner(){
-
-const html5QrCode = new Html5Qrcode("reader");
-
-html5QrCode.start(
-{ facingMode: "environment" },
-{
-fps: 10,
-qrbox: 250
-},
-codigo => {
-
-fetch("https://script.google.com/macros/s/AKfycbxoazerTBp9E7k3MMoWbMxiMKK5gEkk_E-x6U_sMtte0MHyPk13z5hB6y0Xr_8EoBbGeA/exec", {
-method:"POST",
-body:new URLSearchParams({
-codigo: codigo
-})
-});
-
-}
-);
-
-}
-
-</script>
-<script src="https://unpkg.com/html5-qrcode"></script>
-
-<script>
-const urlScript = "https://script.google.com/macros/s/AKfycbxoazerTBp9E7k3MMOwbMxiMKK5gEkk_E-x6U_sMtteOMHyPk13z5hB6y0Xr_8EoBbGeA/exec";
-
-function enviarParaSheets(codigo) {
-    fetch(urlScript, {
-        method: "POST",
-        mode: "no-cors",
-        body: new URLSearchParams({ "codigo": codigo })
-    })
-    .then(() => console.log("Código enviado: " + codigo))
-    .catch(err => alert("Erro ao enviar: " + err));
-}
-
-const btnBipar = document.getElementById('btn-bipar');
-const html5QrCode = new Html5Qrcode("reader");
-
-btnBipar.addEventListener('click', () => {
-    btnBipar.innerText = "LENDO...";
-    btnBipar.style.backgroundColor = "#ffc107";
-
-    html5QrCode.start(
-        { facingMode: "environment" },
-        { fps: 10, qrbox: { width: 250, height: 150 } },
-        (codigoLido) => {
-            html5QrCode.stop().then(() => {
-                enviarParaSheets(codigoLido);
+                        // Reseta o botão para o estado inicial
+                        btnBipar.innerText = "BIPAR";
+                        btnBipar.style.backgroundColor = "#28a745";
+                        
+                        alert("Bipado: " + codigoLido);
+                    }).catch(err => console.error("Erro ao parar câmera:", err));
+                },
+                (errorMessage) => {
+                    // Apenas procurando o código...
+                }
+            ).catch(err => {
+                alert("Erro ao abrir câmera: " + err);
                 btnBipar.innerText = "BIPAR";
                 btnBipar.style.backgroundColor = "#28a745";
-                alert("Bipado: " + codigoLido);
-            }).catch(err => console.error(err));
-        },
-        (errorMessage) => {}
-    ).catch(err => alert("Câmera não encontrada: " + err));
-});
-</script>
+            });
+        });
+    </script>
     
 </body>
 </html>
