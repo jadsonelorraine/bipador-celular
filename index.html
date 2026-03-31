@@ -3,78 +3,100 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Bipador Logístico</title>
+    <title>Bipador Logístico Pro</title>
     <script src="https://unpkg.com/html5-qrcode"></script>
     <style>
-        body { font-family: Arial, sans-serif; text-align: center; padding: 20px; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; text-align: center; padding: 20px; background-color: #f4f4f9; margin: 0; }
+        h2 { color: #333; margin-bottom: 20px; }
+        
+        /* Botão Principal */
         #btn-bipar { 
             padding: 20px; width: 100%; max-width: 300px; font-size: 22px; font-weight: bold;
-            background-color: #28a745; color: white; border: none; border-radius: 12px; cursor: pointer;
+            background-color: #28a745; color: white; border: none; border-radius: 12px; 
+            cursor: pointer; box-shadow: 0 4px 15px rgba(0,0,0,0.1); transition: 0.3s;
         }
-        #reader { width: 100%; max-width: 400px; margin: 20px auto; border-radius: 8px; overflow: hidden; }
+        #btn-bipar:active { transform: scale(0.95); }
+
+        /* Container do Scanner - Ajustado para Quadrado */
+        #reader { 
+            width: 100%; max-width: 350px; margin: 20px auto; 
+            border-radius: 15px; overflow: hidden; border: 4px solid #fff;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+        }
+
+        /* Overlay de Sucesso (Tela Verde) */
+        #success-overlay {
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background-color: #28a745; color: white; z-index: 9999;
+            flex-direction: column; justify-content: center; align-items: center;
+        }
+        #success-overlay h1 { font-size: 80px; margin: 0; }
+        #success-overlay p { font-size: 24px; }
     </style>
 </head>
 <body>
 
-    <h2>Bipador via Celular</h2>
-    
+    <div id="success-overlay">
+        <h1>OK</h1>
+        <p id="msg-codigo"></p>
+    </div>
+
+    <h2>Bipador Logístico</h2>
     <button id="btn-bipar">BIPAR</button>
     <div id="reader"></div>
 
     <script>
-        // Configurações do seu Google Sheets
         const urlScript = "https://script.google.com/macros/s/AKfycbyn57vL-4bkj0l5zRdpdHULT-KhizeOmo3QWyLPVwE_GgTUicxxhoYy8vcZWm5NmS6ZhQ/exec";
-        
         const btnBipar = document.getElementById('btn-bipar');
+        const overlay = document.getElementById('success-overlay');
+        const msgCodigo = document.getElementById('msg-codigo');
         const html5QrCode = new Html5Qrcode("reader");
 
-        // Função para enviar os dados para a planilha
         function enviarParaSheets(codigo) {
             fetch(urlScript, {
                 method: "POST",
                 mode: "no-cors",
                 body: new URLSearchParams({ "codigo": codigo })
-            })
-            .then(() => console.log("Enviado: " + codigo))
-            .catch(err => alert("Erro no envio: " + err));
+            });
         }
 
-        // Lógica de acionamento manual
+        function mostrarSucesso(codigo) {
+            msgCodigo.innerText = "Código: " + codigo;
+            overlay.style.display = "flex";
+            
+            // Remove a tela verde após 1.5 segundos
+            setTimeout(() => {
+                overlay.style.display = "none";
+            }, 1500);
+        }
+
         btnBipar.addEventListener('click', () => {
-            // Evita abrir a câmera duas vezes se já estiver lendo
             if (btnBipar.innerText === "LENDO...") return;
 
             btnBipar.innerText = "LENDO...";
             btnBipar.style.backgroundColor = "#ffc107";
 
             html5QrCode.start(
-                { facingMode: "environment" }, // Força câmera traseira
-                { fps: 10, qrbox: { width: 250, height: 150 } },
+                { facingMode: "environment" },
+                { 
+                    fps: 15, 
+                    qrbox: { width: 250, height: 250 } // AQUI: Ficou um quadrado perfeito 250x250
+                },
                 (codigoLido) => {
-                    // SUCESSO: Leu o código
-                    
-                    // PARA a câmera IMEDIATAMENTE após o primeiro bipe
                     html5QrCode.stop().then(() => {
-                        // Só então envia para o Sheets
                         enviarParaSheets(codigoLido);
-
-                        // Reseta o botão para o estado inicial
+                        mostrarSucesso(codigoLido); // Chama a tela verde
+                        
                         btnBipar.innerText = "BIPAR";
                         btnBipar.style.backgroundColor = "#28a745";
-                        
-                        alert("Bipado: " + codigoLido);
-                    }).catch(err => console.error("Erro ao parar câmera:", err));
+                    });
                 },
-                (errorMessage) => {
-                    // Apenas procurando o código...
-                }
+                (errorMessage) => {}
             ).catch(err => {
-                alert("Erro ao abrir câmera: " + err);
+                alert("Erro: " + err);
                 btnBipar.innerText = "BIPAR";
-                btnBipar.style.backgroundColor = "#28a745";
             });
         });
     </script>
-    
 </body>
 </html>
