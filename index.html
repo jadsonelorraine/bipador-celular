@@ -50,24 +50,40 @@
         const msgCodigo = document.getElementById('msg-codigo');
         const html5QrCode = new Html5Qrcode("reader");
 
-        // Função para gerar o som de "Beep" via software
-        function tocarBeep() {
-            const context = new (window.AudioContext || window.webkitAudioContext)();
-            const oscillator = context.createOscillator();
-            const gain = context.createGain();
+       // Substitua apenas estas partes no seu script:
 
-            oscillator.type = "sine";
-            oscillator.frequency.setValueAtTime(800, context.currentTime); // Frequência do bipe
-            oscillator.connect(gain);
-            gain.connect(context.destination);
+let audioCtx = null; // Variável global para o áudio
 
-            gain.gain.setValueAtTime(0, context.currentTime);
-            gain.gain.linearRampToValueAtTime(0.5, context.currentTime + 0.01);
-            gain.gain.linearRampToValueAtTime(0, context.currentTime + 0.2);
+function tocarBeep() {
+    // Cria o contexto de áudio apenas se não existir (necessário para mobile)
+    if (!audioCtx) {
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    }
+    
+    const oscillator = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
 
-            oscillator.start();
-            oscillator.stop(context.currentTime + 0.2);
-        }
+    oscillator.type = "sine";
+    oscillator.frequency.setValueAtTime(1000, audioCtx.currentTime); // Tom um pouco mais agudo
+    oscillator.connect(gain);
+    gain.connect(audioCtx.destination);
+
+    gain.gain.setValueAtTime(0, audioCtx.currentTime);
+    gain.gain.linearRampToValueAtTime(0.5, audioCtx.currentTime + 0.01);
+    gain.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 0.2);
+
+    oscillator.start();
+    oscillator.stop(audioCtx.currentTime + 0.2);
+}
+
+// No evento do botão, adicione o desbloqueio de áudio:
+btnBipar.addEventListener('click', () => {
+    // "Acorda" o áudio no primeiro clique (exigência do Chrome Mobile)
+    if (audioCtx && audioCtx.state === 'suspended') {
+        audioCtx.resume();
+    }
+    
+    // ... restante do código do botão (html5QrCode.start...)
 
         function enviarParaSheets(codigo) {
             fetch(urlScript, {
