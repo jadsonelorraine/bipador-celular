@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="https://unpkg.com/html5-qrcode"></script>
+</head>
+
+<body style="font-family:Arial;text-align:center">
+
+<h2>Bipador via celular</h2>
+
+<button onclick="startScanner()" style="font-size:22px;padding:15px">
+Iniciar leitura
+</button>
+
+<br><br>
+
+<div id="reader" style="width:320px;margin:auto"></div>
+
+<script>
+
+function startScanner(){
+
+const html5QrCode = new Html5Qrcode("reader");
+
+html5QrCode.start(
+{ facingMode: "environment" },
+{
+fps: 10,
+qrbox: 250
+},
+codigo => {
+
+fetch("COLE_AQUI_URL_DO_APPS_SCRIPT", {
+method:"POST",
+body:new URLSearchParams({
+codigo: codigo
+})
+});
+
+}
+);
+
+}
+
+</script>
+
+</body>
+</html>
