@@ -52,9 +52,7 @@ color:#ff5c5c;
 
 <script>
 
-
 let urlScript = "COLE_AQUI_SUA_URL_DO_APP_SCRIPT";
-
 
 let audioCtx;
 
@@ -163,10 +161,7 @@ codigo:codigo
 
 });
 
-
-let texto = await resposta.text();
-
-return texto;
+return await resposta.text();
 
 }
 
@@ -177,9 +172,51 @@ function iniciarLeitor(){
 let html5QrCode = new Html5Qrcode("reader");
 
 
+Html5Qrcode.getCameras().then(devices => {
+
+if(devices.length == 0){
+
+alert("Nenhuma câmera encontrada");
+
+return;
+
+}
+
+
+// procura câmera traseira pelo nome
+let cameraTraseira = null;
+
+for(let i=0;i<devices.length;i++){
+
+let nome = devices[i].label.toLowerCase();
+
+if(
+nome.includes("back") ||
+nome.includes("rear") ||
+nome.includes("traseira") ||
+nome.includes("environment")
+){
+
+cameraTraseira = devices[i].id;
+
+break;
+
+}
+
+}
+
+
+// se não encontrar, usa a última câmera
+if(!cameraTraseira){
+
+cameraTraseira = devices[devices.length-1].id;
+
+}
+
+
 html5QrCode.start(
 
-{ facingMode: "environment" },
+cameraTraseira,
 
 {
 fps:10,
@@ -191,8 +228,6 @@ codigo => {
 
 if(bloqueado) return;
 
-
-// evita ler o mesmo código várias vezes seguidas
 if(codigo == ultimoCodigo) return;
 
 
@@ -232,18 +267,17 @@ bloqueado = false;
 });
 
 
-},
-
-erro => {}
+}
 
 );
 
+
+});
 
 }
 
 
 iniciarLeitor();
-
 
 </script>
 
