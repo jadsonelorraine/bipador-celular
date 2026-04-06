@@ -1,74 +1,66 @@
 <!DOCTYPE html>
-<html>
+<html lang="pt-br">
 <head>
 
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Bipador Logístico</title>
 
 <script src="https://unpkg.com/html5-qrcode"></script>
 
 <style>
 
 body{
-
-font-family:Arial;
-
+font-family: Arial;
 text-align:center;
-
-background:#111;
-
-color:white;
-
+padding:20px;
+background:#f5f5f5;
 }
 
 button{
 
-font-size:20px;
-
-padding:12px 25px;
-
-margin-top:20px;
-
-background:#00ff9c;
+font-size:22px;
+padding:20px;
+width:90%;
+max-width:300px;
 
 border:none;
+border-radius:12px;
 
-border-radius:8px;
-
-font-weight:bold;
+background:#28a745;
+color:white;
 
 }
 
 #reader{
 
-width:100%;
-
-max-width:500px;
-
-margin:auto;
-
 margin-top:20px;
 
 }
 
-#status{
+#ok{
 
-margin-top:15px;
+display:none;
 
-font-size:20px;
+position:fixed;
 
-font-weight:bold;
+top:0;
+left:0;
 
-}
+width:100%;
+height:100%;
 
-.ok{
+background:#28a745;
 
-color:#00ff9c;
+color:white;
 
-}
+font-size:40px;
 
-.erro{
+justify-content:center;
+align-items:center;
 
-color:#ff5c5c;
+flex-direction:column;
 
 }
 
@@ -76,45 +68,36 @@ color:#ff5c5c;
 
 </head>
 
-
 <body>
 
-<h2>BIPADOR</h2>
+<h2>Bipador</h2>
 
-<button onclick="iniciarCamera()">
-
-BIPAR
-
-</button>
+<button id="btn">BIPAR</button>
 
 <div id="reader"></div>
 
-<div id="status"></div>
+<div id="ok">
 
+OK
+
+<br>
+
+<span id="codigo"></span>
+
+</div>
 
 <script>
 
+const urlScript = "COLE AQUI SUA URL DO APPS SCRIPT";
 
-let urlScript = "https://script.google.com/macros/s/AKfycbxShUtv5yMcNi2qvQiC_TH-5kbqKVekt-1GuAVhRxoXrgSVtMEUoHsuk79UUhEyTi3qng/exec";
 
-let scanner;
+const btn = document.getElementById("btn");
+
+const ok = document.getElementById("ok");
+
+const codigoTxt = document.getElementById("codigo");
 
 let audioCtx;
-
-let bloqueado = false;
-
-
-
-function vibrar(){
-
-if(navigator.vibrate){
-
-navigator.vibrate(150);
-
-}
-
-}
-
 
 
 function beep(){
@@ -146,54 +129,13 @@ osc.stop(audioCtx.currentTime+0.2);
 }
 
 
+function enviar(codigo){
 
-function beepErro(){
-
-if(!audioCtx){
-
-audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-
-}
-
-let osc = audioCtx.createOscillator();
-
-let gain = audioCtx.createGain();
-
-osc.connect(gain);
-
-gain.connect(audioCtx.destination);
-
-osc.frequency.value = 300;
-
-osc.start();
-
-gain.gain.setValueAtTime(1,audioCtx.currentTime);
-
-gain.gain.exponentialRampToValueAtTime(0.001,audioCtx.currentTime+0.4);
-
-osc.stop(audioCtx.currentTime+0.4);
-
-}
-
-
-
-function mostrarStatus(msg,classe){
-
-let el = document.getElementById("status");
-
-el.innerHTML = msg;
-
-el.className = classe;
-
-}
-
-
-
-async function enviar(codigo){
-
-let resposta = await fetch(urlScript,{
+fetch(urlScript,{
 
 method:"POST",
+
+mode:"no-cors",
 
 body:new URLSearchParams({
 
@@ -203,79 +145,49 @@ codigo:codigo
 
 });
 
-
-return await resposta.text();
-
 }
 
 
-
-function iniciarCamera(){
-
-
-scanner = new Html5Qrcode("reader");
+const html5QrCode = new Html5Qrcode("reader");
 
 
-scanner.start(
+btn.onclick = () => {
 
-{ facingMode: "environment" },
+btn.innerText="LENDO...";
 
-{
 
-fps:10,
+html5QrCode.start(
 
-qrbox:250
+{facingMode:"environment"},
 
-},
+{fps:15,qrbox:250},
 
 codigo => {
 
+html5QrCode.stop();
 
-if(bloqueado) return;
-
-bloqueado = true;
-
-
-enviar(codigo).then(resposta => {
-
-
-vibrar();
-
-
-if(resposta == "duplicado"){
-
-beepErro();
-
-mostrarStatus("DUPLICADO ⚠️","erro");
-
-}else{
+enviar(codigo);
 
 beep();
 
-mostrarStatus("OK ✔️","ok");
+codigoTxt.innerText=codigo;
 
-}
+ok.style.display="flex";
 
 
 setTimeout(()=>{
 
-bloqueado = false;
+ok.style.display="none";
 
-},1500);
+btn.innerText="BIPAR";
 
-
-});
-
-
-},
-
-erro => {}
-
-);
-
+},1000);
 
 }
 
+);
+
+};
 
 </script>
 
