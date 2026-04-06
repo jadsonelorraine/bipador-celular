@@ -88,9 +88,7 @@ OK
 
 <script>
 
-
 const urlScript = "https://script.google.com/macros/s/AKfycbxShUtv5yMcNi2qvQiC_TH-5kbqKVekt-1GuAVhRxoXrgSVtMEUoHsuk79UUhEyTi3qng/exec";
-
 
 const btn = document.getElementById("btn");
 
@@ -134,17 +132,17 @@ osc.stop(audioCtx.currentTime+0.2);
 
 
 
-async function enviar(codigo){
+function enviar(codigo){
 
-await fetch(urlScript,{
+fetch(urlScript,{
 
 method:"POST",
 
-headers:{
-"Content-Type":"application/x-www-form-urlencoded"
-},
+body:new URLSearchParams({
 
-body:"codigo="+encodeURIComponent(codigo)
+codigo:codigo
+
+})
 
 });
 
@@ -154,12 +152,9 @@ body:"codigo="+encodeURIComponent(codigo)
 
 btn.onclick = () => {
 
-
 btn.innerText="LENDO...";
 
-
 scanner = new Html5Qrcode("reader");
-
 
 scanner.start(
 
@@ -169,44 +164,35 @@ scanner.start(
 
 codigo => {
 
-
 scanner.stop();
-
 
 enviar(codigo);
 
-
 beep();
-
 
 codigoTxt.innerText=codigo;
 
-
 ok.style.display="flex";
-
 
 setTimeout(()=>{
 
-
 ok.style.display="none";
-
 
 btn.innerText="BIPAR";
 
-
 },1000);
-
 
 }
 
 );
 
-
 };
-
 
 </script>
 
 </body>
 
 </html>
+
+
+
