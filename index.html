@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!--<!DOCTYPE html>
 <html lang="pt-br">
 <head>
 
@@ -188,6 +188,207 @@ btn.innerText="BIPAR";
 );
 
 };
+
+</script>
+
+</body>
+
+</html>-->
+
+<!DOCTYPE html>
+<html>
+<head>
+
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<script src="https://unpkg.com/html5-qrcode"></script>
+
+<style>
+
+body{
+
+font-family:Arial;
+
+text-align:center;
+
+background:#111;
+
+color:white;
+
+}
+
+#reader{
+
+width:100%;
+
+max-width:500px;
+
+margin:auto;
+
+margin-top:20px;
+
+}
+
+</style>
+
+</head>
+
+
+<body>
+
+<h2>BIPADOR</h2>
+
+<div id="reader"></div>
+
+<script>
+
+
+let urlScript = "https://script.google.com/macros/s/AKfycbxShUtv5yMcNi2qvQiC_TH-5kbqKVekt-1GuAVhRxoXrgSVtMEUoHsuk79UUhEyTi3qng/exec";
+
+
+let audioCtx;
+
+
+// bip normal
+function beep(){
+
+if(!audioCtx){
+
+audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+
+}
+
+let osc = audioCtx.createOscillator();
+
+let gain = audioCtx.createGain();
+
+osc.connect(gain);
+
+gain.connect(audioCtx.destination);
+
+osc.frequency.value = 900;
+
+osc.start();
+
+gain.gain.setValueAtTime(1,audioCtx.currentTime);
+
+gain.gain.exponentialRampToValueAtTime(0.001,audioCtx.currentTime+0.2);
+
+osc.stop(audioCtx.currentTime+0.2);
+
+}
+
+
+
+// bip duplicado
+function beepErro(){
+
+if(!audioCtx){
+
+audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+
+}
+
+let osc = audioCtx.createOscillator();
+
+let gain = audioCtx.createGain();
+
+osc.connect(gain);
+
+gain.connect(audioCtx.destination);
+
+osc.frequency.value = 300;
+
+osc.start();
+
+gain.gain.setValueAtTime(1,audioCtx.currentTime);
+
+gain.gain.exponentialRampToValueAtTime(0.001,audioCtx.currentTime+0.4);
+
+osc.stop(audioCtx.currentTime+0.4);
+
+}
+
+
+
+async function enviar(codigo){
+
+let resposta = await fetch(urlScript,{
+
+method:"POST",
+
+body:new URLSearchParams({
+
+codigo:codigo
+
+})
+
+});
+
+
+let texto = await resposta.text();
+
+return texto;
+
+}
+
+
+
+function iniciarLeitor(){
+
+let html5QrCode = new Html5Qrcode("reader");
+
+
+Html5Qrcode.getCameras().then(devices => {
+
+let cameraId = devices[0].id;
+
+
+html5QrCode.start(
+
+cameraId,
+
+{
+
+fps:10,
+
+qrbox:250
+
+},
+
+codigo => {
+
+
+enviar(codigo).then(resposta => {
+
+
+if(resposta == "duplicado"){
+
+beepErro();
+
+}else{
+
+beep();
+
+}
+
+
+});
+
+
+
+}
+
+);
+
+
+});
+
+}
+
+
+iniciarLeitor();
+
 
 </script>
 
