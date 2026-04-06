@@ -88,7 +88,8 @@ OK
 
 <script>
 
-const urlScript = "https://script.google.com/macros/s/AKfycbxShUtv5yMcNi2qvQiC_TH-5kbqKVekt-1GuAVhRxoXrgSVtMEUoHsuk79UUhEyTi3qng/exec";
+
+const urlScript = "COLE_AQUI_SUA_URL_DO_APP_SCRIPT";
 
 
 const btn = document.getElementById("btn");
@@ -98,6 +99,9 @@ const ok = document.getElementById("ok");
 const codigoTxt = document.getElementById("codigo");
 
 let audioCtx;
+
+let scanner;
+
 
 
 function beep(){
@@ -129,65 +133,77 @@ osc.stop(audioCtx.currentTime+0.2);
 }
 
 
-function enviar(codigo){
 
-fetch(urlScript,{
+async function enviar(codigo){
+
+await fetch(urlScript,{
 
 method:"POST",
 
-mode:"no-cors",
+headers:{
+"Content-Type":"application/x-www-form-urlencoded"
+},
 
-body:new URLSearchParams({
-
-codigo:codigo
-
-})
+body:"codigo="+encodeURIComponent(codigo)
 
 });
 
 }
 
 
-const html5QrCode = new Html5Qrcode("reader");
-
 
 btn.onclick = () => {
+
 
 btn.innerText="LENDO...";
 
 
-html5QrCode.start(
+scanner = new Html5Qrcode("reader");
 
-{facingMode:"environment"},
 
-{fps:15,qrbox:250},
+scanner.start(
+
+{ facingMode:"environment" },
+
+{ fps:15, qrbox:250 },
 
 codigo => {
 
-html5QrCode.stop();
+
+scanner.stop();
+
 
 enviar(codigo);
 
+
 beep();
 
+
 codigoTxt.innerText=codigo;
+
 
 ok.style.display="flex";
 
 
 setTimeout(()=>{
 
+
 ok.style.display="none";
+
 
 btn.innerText="BIPAR";
 
+
 },1000);
+
 
 }
 
 );
 
+
 };
+
 
 </script>
 
