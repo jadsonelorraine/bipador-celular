@@ -210,59 +210,37 @@ iniciarLeitor();
 <style>
 
 body{
-
 font-family:Arial;
-
 text-align:center;
-
 background:#111;
-
 color:white;
-
 }
 
 #reader{
-
 width:100%;
-
 max-width:500px;
-
 margin:auto;
-
 margin-top:20px;
-
 }
 
 #status{
-
 margin-top:15px;
-
 font-size:20px;
-
 font-weight:bold;
-
 }
 
 #contador{
-
 margin-top:10px;
-
 font-size:18px;
-
 color:#00ff9c;
-
 }
 
 .ok{
-
 color:#00ff9c;
-
 }
 
 .erro{
-
 color:#ff5c5c;
-
 }
 
 </style>
@@ -284,7 +262,7 @@ color:#ff5c5c;
 <script>
 
 
-let urlScript = "COLE_AQUI_SUA_URL_DO_APP_SCRIPT";
+let urlScript = "https://script.google.com/macros/s/AKfycbxShUtv5yMcNi2qvQiC_TH-5kbqKVekt-1GuAVhRxoXrgSVtMEUoHsuk79UUhEyTi3qng/exec";
 
 
 let audioCtx;
@@ -418,7 +396,35 @@ let html5QrCode = new Html5Qrcode("reader");
 
 Html5Qrcode.getCameras().then(devices => {
 
-let cameraId = devices[0].id;
+let cameraId;
+
+
+// tenta encontrar câmera traseira automaticamente
+for(let i=0;i<devices.length;i++){
+
+let nome = devices[i].label.toLowerCase();
+
+if(
+nome.includes("back") ||
+nome.includes("traseira") ||
+nome.includes("environment")
+){
+
+cameraId = devices[i].id;
+
+break;
+
+}
+
+}
+
+
+// se não encontrar, usa a última câmera da lista
+if(!cameraId){
+
+cameraId = devices[devices.length-1].id;
+
+}
 
 
 html5QrCode.start(
@@ -426,11 +432,8 @@ html5QrCode.start(
 cameraId,
 
 {
-
 fps:10,
-
 qrbox:250
-
 },
 
 codigo => {
@@ -462,7 +465,6 @@ atualizarContador();
 
 
 });
-
 
 
 }
