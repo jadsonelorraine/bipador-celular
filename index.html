@@ -9,27 +9,31 @@
 <style>
 
 body{
-
 font-family:Arial;
-
 text-align:center;
-
 background:#111;
-
 color:white;
-
 }
 
 #reader{
-
 width:100%;
-
 max-width:500px;
-
 margin:auto;
-
 margin-top:20px;
+}
 
+#status{
+margin-top:15px;
+font-size:20px;
+font-weight:bold;
+}
+
+.ok{
+color:#00ff9c;
+}
+
+.erro{
+color:#ff5c5c;
 }
 
 </style>
@@ -43,13 +47,32 @@ margin-top:20px;
 
 <div id="reader"></div>
 
+<div id="status"></div>
+
+
 <script>
 
 
-let urlScript = "https://script.google.com/macros/s/AKfycbxShUtv5yMcNi2qvQiC_TH-5kbqKVekt-1GuAVhRxoXrgSVtMEUoHsuk79UUhEyTi3qng/exec";
+let urlScript = "COLE_AQUI_SUA_URL_DO_APP_SCRIPT";
 
 
 let audioCtx;
+
+let bloqueado = false;
+
+let ultimoCodigo = "";
+
+
+// vibração
+function vibrar(){
+
+if(navigator.vibrate){
+
+navigator.vibrate(150);
+
+}
+
+}
 
 
 // bip normal
@@ -114,6 +137,18 @@ osc.stop(audioCtx.currentTime+0.4);
 
 
 
+function mostrarStatus(msg,classe){
+
+let el = document.getElementById("status");
+
+el.innerHTML = msg;
+
+el.className = classe;
+
+}
+
+
+
 async function enviar(codigo){
 
 let resposta = await fetch(urlScript,{
@@ -142,50 +177,67 @@ function iniciarLeitor(){
 let html5QrCode = new Html5Qrcode("reader");
 
 
-Html5Qrcode.getCameras().then(devices => {
-
-let cameraId = devices[0].id;
-
-
 html5QrCode.start(
 
-cameraId,
+{ facingMode: "environment" },
 
 {
-
 fps:10,
-
 qrbox:250
-
 },
 
 codigo => {
 
 
+if(bloqueado) return;
+
+
+// evita ler o mesmo código várias vezes seguidas
+if(codigo == ultimoCodigo) return;
+
+
+bloqueado = true;
+
+ultimoCodigo = codigo;
+
+
 enviar(codigo).then(resposta => {
+
+
+vibrar();
 
 
 if(resposta == "duplicado"){
 
 beepErro();
 
+mostrarStatus("DUPLICADO ⚠️","erro");
+
 }else{
 
 beep();
 
+mostrarStatus("OK ✔️","ok");
+
 }
+
+
+setTimeout(()=>{
+
+bloqueado = false;
+
+},1500);
 
 
 });
 
 
+},
 
-}
+erro => {}
 
 );
 
-
-});
 
 }
 
