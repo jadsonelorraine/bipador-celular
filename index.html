@@ -9,31 +9,67 @@
 <style>
 
 body{
+
 font-family:Arial;
+
 text-align:center;
+
 background:#111;
+
 color:white;
+
+}
+
+button{
+
+font-size:20px;
+
+padding:12px 25px;
+
+margin-top:20px;
+
+background:#00ff9c;
+
+border:none;
+
+border-radius:8px;
+
+font-weight:bold;
+
 }
 
 #reader{
+
 width:100%;
+
 max-width:500px;
+
 margin:auto;
+
 margin-top:20px;
+
 }
 
 #status{
+
 margin-top:15px;
+
 font-size:20px;
+
 font-weight:bold;
+
 }
 
 .ok{
+
 color:#00ff9c;
+
 }
 
 .erro{
+
 color:#ff5c5c;
+
 }
 
 </style>
@@ -45,6 +81,12 @@ color:#ff5c5c;
 
 <h2>BIPADOR</h2>
 
+<button onclick="iniciarCamera()">
+
+BIPAR
+
+</button>
+
 <div id="reader"></div>
 
 <div id="status"></div>
@@ -52,16 +94,17 @@ color:#ff5c5c;
 
 <script>
 
+
 let urlScript = "COLE_AQUI_SUA_URL_DO_APP_SCRIPT";
+
+let scanner;
 
 let audioCtx;
 
 let bloqueado = false;
 
-let ultimoCodigo = "";
 
 
-// vibração
 function vibrar(){
 
 if(navigator.vibrate){
@@ -73,7 +116,7 @@ navigator.vibrate(150);
 }
 
 
-// bip normal
+
 function beep(){
 
 if(!audioCtx){
@@ -104,7 +147,6 @@ osc.stop(audioCtx.currentTime+0.2);
 
 
 
-// bip duplicado
 function beepErro(){
 
 if(!audioCtx){
@@ -161,66 +203,29 @@ codigo:codigo
 
 });
 
+
 return await resposta.text();
 
 }
 
 
 
-function iniciarLeitor(){
-
-let html5QrCode = new Html5Qrcode("reader");
+function iniciarCamera(){
 
 
-Html5Qrcode.getCameras().then(devices => {
-
-if(devices.length == 0){
-
-alert("Nenhuma câmera encontrada");
-
-return;
-
-}
+scanner = new Html5Qrcode("reader");
 
 
-// procura câmera traseira pelo nome
-let cameraTraseira = null;
+scanner.start(
 
-for(let i=0;i<devices.length;i++){
-
-let nome = devices[i].label.toLowerCase();
-
-if(
-nome.includes("back") ||
-nome.includes("rear") ||
-nome.includes("traseira") ||
-nome.includes("environment")
-){
-
-cameraTraseira = devices[i].id;
-
-break;
-
-}
-
-}
-
-
-// se não encontrar, usa a última câmera
-if(!cameraTraseira){
-
-cameraTraseira = devices[devices.length-1].id;
-
-}
-
-
-html5QrCode.start(
-
-cameraTraseira,
+{ facingMode: "environment" },
 
 {
+
 fps:10,
+
 qrbox:250
+
 },
 
 codigo => {
@@ -228,12 +233,7 @@ codigo => {
 
 if(bloqueado) return;
 
-if(codigo == ultimoCodigo) return;
-
-
 bloqueado = true;
-
-ultimoCodigo = codigo;
 
 
 enviar(codigo).then(resposta => {
@@ -267,17 +267,15 @@ bloqueado = false;
 });
 
 
-}
+},
+
+erro => {}
 
 );
 
 
-});
-
 }
 
-
-iniciarLeitor();
 
 </script>
 
