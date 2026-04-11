@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="pt-br">
+
 <head>
 
 <meta charset="UTF-8">
@@ -64,6 +65,13 @@ flex-direction:column;
 
 }
 
+#contador{
+
+font-size:22px;
+margin-top:20px;
+
+}
+
 </style>
 
 </head>
@@ -75,6 +83,12 @@ flex-direction:column;
 <button id="btn">BIPAR</button>
 
 <div id="reader"></div>
+
+<div id="contador">
+
+ÚNICOS: <span id="total">0</span>
+
+</div>
 
 <div id="ok">
 
@@ -96,11 +110,13 @@ const ok = document.getElementById("ok");
 
 const codigoTxt = document.getElementById("codigo");
 
+const totalTxt = document.getElementById("total");
+
+let lista = new Set();
+
 let audioCtx;
 
 let scanner;
-
-
 
 function beep(){
 
@@ -130,9 +146,13 @@ osc.stop(audioCtx.currentTime+0.2);
 
 }
 
-
-
 function enviar(codigo){
+
+if(!lista.has(codigo)){
+
+lista.add(codigo);
+
+totalTxt.innerText = lista.size;
 
 fetch(urlScript,{
 
@@ -148,7 +168,7 @@ codigo:codigo
 
 }
 
-
+}
 
 btn.onclick = () => {
 
